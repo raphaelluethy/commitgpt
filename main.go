@@ -31,12 +31,9 @@ func main() {
 
 	summary := getAnthropicSummary(content)
 
-	// Determine commit type
-	commitType := determineCommitType(summary)
-	commitMessage := fmt.Sprintf("%s: %s", commitType, summary)
-	createGitCommit(commitMessage)
+	createGitCommit(summary)
 
-	fmt.Printf("Created commit: %s\n", commitMessage)
+	fmt.Printf("Created commit: %s\n", summary)
 }
 
 func getCommandOutput(name string, args ...string) string {
@@ -50,7 +47,7 @@ func getCommandOutput(name string, args ...string) string {
 }
 
 func getAnthropicSummary(content string) string {
-	prompt := fmt.Sprintf("Summarize the following Git changes:\n\n%s\n\nProvide a concise one-line summary of the changes, like the following: `fix: fixed an issue where a memory leak was happening` or `feat: added the abillity to take screenshots`. Here is the content:", content)
+	prompt := fmt.Sprintf("Summarize the following Git changes:\n\n%s\n\nProvide a concise one-line summary of the changes, like the following: `fix: fixed an issue where a memory leak was happening` or `feat: added the abillity to take screenshots`. ONLY RETURN ONE LINE. Here is the content:", content)
 
 	requestBody, _ := json.Marshal(map[string]interface{}{
 		"model":      "claude-3-5-sonnet-20240620",
@@ -84,26 +81,6 @@ func getAnthropicSummary(content string) string {
 	}
 
 	return "Unable to generate summary"
-}
-
-func determineCommitType(summary string) string {
-	summary = strings.ToLower(summary)
-	if strings.Contains(summary, "fix") || strings.Contains(summary, "bug") {
-		return "fix"
-	} else if strings.Contains(summary, "feat") || strings.Contains(summary, "feature") {
-		return "feat"
-	} else if strings.Contains(summary, "docs") || strings.Contains(summary, "documentation") {
-		return "docs"
-	} else if strings.Contains(summary, "style") {
-		return "style"
-	} else if strings.Contains(summary, "refactor") {
-		return "refactor"
-	} else if strings.Contains(summary, "test") {
-		return "test"
-	} else if strings.Contains(summary, "chore") {
-		return "chore"
-	}
-	return "chore" // default to chore if no specific type is detected
 }
 
 func createGitCommit(message string) {
