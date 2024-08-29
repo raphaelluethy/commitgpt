@@ -29,16 +29,11 @@ func main() {
 	// Prepare content for summarization
 	content := fmt.Sprintf("Detailed Changes:\n%s\n\nChanges Overview:\n%s", unstagedChanges, changesOverview)
 
-	// Get summary from Anthropic API
 	summary := getAnthropicSummary(content)
 
 	// Determine commit type
 	commitType := determineCommitType(summary)
-
-	// Create commit message
 	commitMessage := fmt.Sprintf("%s: %s", commitType, summary)
-
-	// Create git commit
 	createGitCommit(commitMessage)
 
 	fmt.Printf("Created commit: %s\n", commitMessage)
