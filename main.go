@@ -20,6 +20,14 @@ func main() {
 	unstagedChanges := getCommandOutput("git", "diff")
 	if unstagedChanges == "" {
 		fmt.Println("No unstaged changes found.")
+		for _, arg := range os.Args[1:] {
+			if arg == "--help" || arg == "-h" {
+				fmt.Println("Usage: commitgpt [options]")
+				fmt.Println("Options:")
+				fmt.Println("  --help, -h  Show this help message and exit.")
+				os.Exit(0)
+			}
+		}
 		return
 	}
 
