@@ -58,11 +58,11 @@ func getAnthropicSummary(content string) string {
 	prompt := fmt.Sprintf("Summarize the following Git changes:\n\n%s\n\nProvide a concise one-line summary of the changes, like the following: `fix: fixed an issue where a memory leak was happening` or `feat: added the abillity to take screenshots`. ONLY RETURN ONE LINE. Here is the content:", content)
 
 	requestBody, _ := json.Marshal(map[string]interface{}{
-		"model":      "claude-3-5-sonnet-20240620",
-		"max_tokens": 8096,
+		"model": "claude-3-5-sonnet-latest",
 		"messages": []map[string]string{
 			{"role": "user", "content": prompt},
 		},
+		"max_tokens": 4096,
 	})
 
 	req, _ := http.NewRequest("POST", anthropicAPIURL, bytes.NewBuffer(requestBody))
