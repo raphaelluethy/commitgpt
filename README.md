@@ -76,4 +76,4 @@ The tool will exit with an error message if:
 
 ## License
 
-MIT License. See [LICENSE.md](LICENSE.md) for details.
+MIT License. See [LICENSE](LICENSE) for details.
