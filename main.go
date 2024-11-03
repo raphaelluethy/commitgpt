@@ -18,7 +18,6 @@ const anthropicAPIURL = "https://api.anthropic.com/v1/messages"
 // main is the entry point of the program. It checks for unstaged git changes,
 // generates a commit message using Anthropic's API, and creates a git commit.
 func main() {
-	// Check for unstaged changes
 	unstagedChanges := getCommandOutput("git", "diff")
 	if unstagedChanges == "" {
 		fmt.Println("No unstaged changes found.")
@@ -33,10 +32,8 @@ func main() {
 		return
 	}
 
-	// Get changes overview
 	changesOverview := getCommandOutput("git", "diff", "--stat")
 
-	// Prepare content for summarization
 	content := fmt.Sprintf("Detailed Changes:\n%s\n\nChanges Overview:\n%s", unstagedChanges, changesOverview)
 
 	summary := getAnthropicSummary(content)
