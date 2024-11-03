@@ -15,6 +15,9 @@ var anthropicAPIKey = os.Getenv("ANTHROPIC_API_KEY")
 
 const anthropicAPIURL = "https://api.anthropic.com/v1/messages"
 
+// main is the entry point of the application. It checks for unstaged changes,
+// generates a summary of those changes using the Anthropic API, and creates
+// a git commit with the generated summary.
 func main() {
 	unstagedChanges, err := getCommandOutput("git", "diff")
 	if err != nil {
@@ -58,8 +61,8 @@ func main() {
 }
 
 // getCommandOutput executes a command with the given name and arguments,
-// and returns its output as a trimmed string. If the command fails,
-// it prints the error and exits the program.
+// returning its output as a trimmed string. If the command fails, it logs
+// the error and returns an error message.
 func getCommandOutput(name string, args ...string) (string, error) {
 	cmd := exec.Command(name, args...)
 	output, err := cmd.Output()
@@ -72,7 +75,7 @@ func getCommandOutput(name string, args ...string) (string, error) {
 
 // getAnthropicSummary sends the provided content to Anthropic's API
 // to generate a concise one-line summary of git changes. It returns
-// the generated summary or an error message if the API call fails.
+// the generated summary or an error if the API call fails.
 func getAnthropicSummary(content string) (string, error) {
 	prompt := fmt.Sprintf("Summarize the following Git changes:\n\n%s\n\nProvide a concise one-line summary of the changes, like the following: `fix: fixed an issue where a memory leak was happening` or `feat: added the abillity to take screenshots`. ONLY RETURN ONE LINE. Here is the content:", content)
 
@@ -111,8 +114,8 @@ func getAnthropicSummary(content string) (string, error) {
 }
 
 // createGitCommit stages all changes and creates a new git commit
-// with the provided message. If either operation fails, it prints
-// the error and exits the program.
+// with the provided message. If either operation fails, it logs the
+// error and returns an error message.
 func createGitCommit(message string) error {
 	cmd := exec.Command("git", "add", ".")
 	err := cmd.Run()
