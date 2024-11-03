@@ -16,7 +16,11 @@ var anthropicAPIKey = os.Getenv("ANTHROPIC_API_KEY")
 const anthropicAPIURL = "https://api.anthropic.com/v1/messages"
 
 func main() {
-	unstagedChanges := getCommandOutput("git", "diff")
+	unstagedChanges, err := getCommandOutput("git", "diff")
+	if err != nil {
+		fmt.Printf("Error getting unstaged changes: %v\n", err)
+		os.Exit(1)
+	}
 	if unstagedChanges == "" {
 		fmt.Println("No unstaged changes found.")
 		for _, arg := range os.Args[1:] {
@@ -30,13 +34,25 @@ func main() {
 		return
 	}
 
-	changesOverview := getCommandOutput("git", "diff", "--stat")
+	changesOverview, err := getCommandOutput("git", "diff", "--stat")
+	if err != nil {
+		fmt.Printf("Error getting changes overview: %v\n", err)
+		os.Exit(1)
+	}
 
 	content := fmt.Sprintf("Detailed Changes:\n%s\n\nChanges Overview:\n%s", unstagedChanges, changesOverview)
 
-	summary := getAnthropicSummary(content)
+	summary, err := getAnthropicSummary(content)
+	if err != nil {
+		fmt.Printf("Error generating summary: %v\n", err)
+		os.Exit(1)
+	}
 
-	createGitCommit(summary)
+	err = createGitCommit(summary)
+	if err != nil {
+		fmt.Printf("Error creating commit: %v\n", err)
+		os.Exit(1)
+	}
 
 	fmt.Printf("Created commit: %s\n", summary)
 }
@@ -44,20 +60,20 @@ func main() {
 // getCommandOutput executes a command with the given name and arguments,
 // and returns its output as a trimmed string. If the command fails,
 // it prints the error and exits the program.
-func getCommandOutput(name string, args ...string) string {
+func getCommandOutput(name string, args ...string) (string, error) {
 	cmd := exec.Command(name, args...)
 	output, err := cmd.Output()
 	if err != nil {
 		fmt.Printf("Error executing command: %v\n", err)
-		os.Exit(1)
+		return "", fmt.Errorf("error executing command: %v", err)
 	}
-	return strings.TrimSpace(string(output))
+	return strings.TrimSpace(string(output)), nil
 }
 
 // getAnthropicSummary sends the provided content to Anthropic's API
 // to generate a concise one-line summary of git changes. It returns
 // the generated summary or an error message if the API call fails.
-func getAnthropicSummary(content string) string {
+func getAnthropicSummary(content string) (string, error) {
 	prompt := fmt.Sprintf("Summarize the following Git changes:\n\n%s\n\nProvide a concise one-line summary of the changes, like the following: `fix: fixed an issue where a memory leak was happening` or `feat: added the abillity to take screenshots`. ONLY RETURN ONE LINE. Here is the content:", content)
 
 	requestBody, _ := json.Marshal(map[string]interface{}{
@@ -77,7 +93,7 @@ func getAnthropicSummary(content string) string {
 	resp, err := client.Do(req)
 	if err != nil {
 		fmt.Printf("Error calling Anthropic API: %v\n", err)
-		return "Unable to generate summary"
+		return "", fmt.Errorf("error calling Anthropic API: %v", err)
 	}
 	defer resp.Body.Close()
 
@@ -87,28 +103,30 @@ func getAnthropicSummary(content string) string {
 
 	if content, ok := result["content"].([]interface{}); ok && len(content) > 0 {
 		if text, ok := content[0].(map[string]interface{})["text"].(string); ok {
-			return text
+			return text, nil
 		}
 	}
 
-	return "Unable to generate summary"
+	return "", fmt.Errorf("unable to generate summary")
 }
 
 // createGitCommit stages all changes and creates a new git commit
 // with the provided message. If either operation fails, it prints
 // the error and exits the program.
-func createGitCommit(message string) {
+func createGitCommit(message string) error {
 	cmd := exec.Command("git", "add", ".")
 	err := cmd.Run()
 	if err != nil {
 		fmt.Printf("Error staging changes: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("error staging changes: %v", err)
 	}
 
 	cmd = exec.Command("git", "commit", "-m", message)
 	err = cmd.Run()
 	if err != nil {
 		fmt.Printf("Error creating commit: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("error creating commit: %v", err)
 	}
+
+	return nil
 }
