@@ -22,7 +22,7 @@ Before using CommitGPT, ensure you have:
 
 1. Clone the repository:
 ```bash
-git clone [your-repo-url]
+git clone https://github.com/raphaelluethy/commitgpt
 cd commitgpt
 ```
 
