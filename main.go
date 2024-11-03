@@ -15,8 +15,6 @@ var anthropicAPIKey = os.Getenv("ANTHROPIC_API_KEY")
 
 const anthropicAPIURL = "https://api.anthropic.com/v1/messages"
 
-// main is the entry point of the program. It checks for unstaged git changes,
-// generates a commit message using Anthropic's API, and creates a git commit.
 func main() {
 	unstagedChanges := getCommandOutput("git", "diff")
 	if unstagedChanges == "" {
