@@ -15,6 +15,8 @@ var anthropicAPIKey = os.Getenv("ANTHROPIC_API_KEY")
 
 const anthropicAPIURL = "https://api.anthropic.com/v1/messages"
 
+// main is the entry point of the program. It checks for unstaged git changes,
+// generates a commit message using Anthropic's API, and creates a git commit.
 func main() {
 	// Check for unstaged changes
 	unstagedChanges := getCommandOutput("git", "diff")
@@ -44,6 +46,9 @@ func main() {
 	fmt.Printf("Created commit: %s\n", summary)
 }
 
+// getCommandOutput executes a command with the given name and arguments,
+// and returns its output as a trimmed string. If the command fails,
+// it prints the error and exits the program.
 func getCommandOutput(name string, args ...string) string {
 	cmd := exec.Command(name, args...)
 	output, err := cmd.Output()
@@ -54,6 +59,9 @@ func getCommandOutput(name string, args ...string) string {
 	return strings.TrimSpace(string(output))
 }
 
+// getAnthropicSummary sends the provided content to Anthropic's API
+// to generate a concise one-line summary of git changes. It returns
+// the generated summary or an error message if the API call fails.
 func getAnthropicSummary(content string) string {
 	prompt := fmt.Sprintf("Summarize the following Git changes:\n\n%s\n\nProvide a concise one-line summary of the changes, like the following: `fix: fixed an issue where a memory leak was happening` or `feat: added the abillity to take screenshots`. ONLY RETURN ONE LINE. Here is the content:", content)
 
@@ -91,6 +99,9 @@ func getAnthropicSummary(content string) string {
 	return "Unable to generate summary"
 }
 
+// createGitCommit stages all changes and creates a new git commit
+// with the provided message. If either operation fails, it prints
+// the error and exits the program.
 func createGitCommit(message string) {
 	cmd := exec.Command("git", "add", ".")
 	err := cmd.Run()
